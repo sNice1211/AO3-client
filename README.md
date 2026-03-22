@@ -29,14 +29,15 @@ A feature-rich Android client for Archive of Our Own (AO3), designed for a seaml
 - **EPUB Engine**: [epublib](https://github.com/psiegman/epublib)
 - **Design System**: Material 3
 
-## Getting Started
+## Installation
 
-### Prerequisites
+### Method 1: Direct APK (Recommended for users)
+1. Download the latest `app-release.apk` (or `app-debug.apk` for testing).
+2. Transfer the file to your Android device.
+3. Open the file on your device to install.
+   - *Note: You may need to enable "Install from Unknown Sources" in your device settings.*
 
-- Android 7.0 (API level 24) or higher.
-
-### Installation
-
+### Method 2: Build from Source (For developers)
 1. Clone the repository:
    ```bash
    git clone https://github.com/yourusername/AO3client.git
