@@ -40,7 +40,7 @@ A feature-rich Android client for Archive of Our Own (AO3), designed for a seaml
 ### Method 2: Build from Source (For developers)
 1. Clone the repository:
    ```bash
-   git clone https://github.com/sNice1211/AO3client.git
+   git clone https://github.com/sNice1211/AO3-client.git
    ```
 2. Open the project in Android Studio.
 3. Build and run the app on your device or emulator.
