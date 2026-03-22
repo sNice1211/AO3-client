@@ -72,6 +72,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.FileProvider
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavType
@@ -165,7 +168,8 @@ fun MainScreen() {
                 if (lastRoute == "reader/{filePath}") {
                     val lastEpubPath = prefs.getString("last_epub_path", null)
                     if (lastEpubPath != null) {
-                        navController.navigate("reader/$lastEpubPath")
+                        val encoded = URLEncoder.encode(lastEpubPath, StandardCharsets.UTF_8.toString())
+                        navController.navigate("reader/$encoded")
                     }
                 } else if (!isOfflineMode || lastRoute == Screen.Downloads.route) {
                     navController.navigate(lastRoute) {
@@ -678,6 +682,7 @@ fun DownloadsScreen(navController: NavController, modifier: Modifier = Modifier)
 @Composable
 fun EpubReaderScreen(file: File, navController: NavController) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     val prefs = remember { context.getSharedPreferences("ao3_prefs", Context.MODE_PRIVATE) }
     val scrollKey = "scroll_${file.absolutePath}"
     
@@ -685,15 +690,27 @@ fun EpubReaderScreen(file: File, navController: NavController) {
     var title by remember { mutableStateOf("Reading...") }
     var webViewRef by remember { mutableStateOf<WebView?>(null) }
 
-    // Save scroll position
-    DisposableEffect(file.absolutePath) {
-        onDispose {
-            webViewRef?.let { wv ->
-                val scrollY = wv.scrollY
-                if (scrollY > 0) {
-                    prefs.edit().putInt(scrollKey, scrollY).apply()
-                }
+    // Helper function to save scroll
+    fun saveScroll(wv: WebView?) {
+        wv?.let {
+            val scrollY = it.scrollY
+            if (scrollY > 0) {
+                prefs.edit().putInt(scrollKey, scrollY).apply()
             }
+        }
+    }
+
+    // Save scroll position on pause or dispose
+    DisposableEffect(lifecycleOwner, file.absolutePath, webViewRef) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_PAUSE) {
+                saveScroll(webViewRef)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            saveScroll(webViewRef)
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
@@ -759,17 +776,27 @@ fun EpubReaderScreen(file: File, navController: NavController) {
                             super.onPageFinished(view, url)
                             val lastScroll = prefs.getInt(scrollKey, 0)
                             if (lastScroll > 0) {
-                                view?.post {
-                                    view.scrollTo(0, lastScroll)
-                                }
+                                // Try scrolling after several delays to ensure layout is done
+                                view?.postDelayed({ view.scrollTo(0, lastScroll) }, 100)
+                                view?.postDelayed({ view.scrollTo(0, lastScroll) }, 300)
+                                view?.postDelayed({ view.scrollTo(0, lastScroll) }, 600)
                             }
+                        }
+                    }
+                    setOnScrollChangeListener { _, _, _, scrollY, _ ->
+                        if (scrollY > 0) {
+                            prefs.edit().putInt(scrollKey, scrollY).apply()
                         }
                     }
                     webViewRef = this
                 }
             },
             update = { webView ->
-                webView.loadDataWithBaseURL(null, htmlContent, "text/html", "UTF-8", null)
+                // Avoid reloading if content is the same
+                if (webView.tag != htmlContent && htmlContent.isNotBlank()) {
+                    webView.loadDataWithBaseURL(null, htmlContent, "text/html", "UTF-8", null)
+                    webView.tag = htmlContent
+                }
             }
         )
     }
