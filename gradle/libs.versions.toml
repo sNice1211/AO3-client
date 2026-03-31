@@ -11,6 +11,7 @@ kotlin = "2.2.10"
 composeBom = "2024.09.00"
 navigationCompose = "2.7.7"
 slf4j = "1.7.36"
+datastore = "1.1.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -32,6 +33,7 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 epublib = { group = "com.positiondev.epublib", name = "epublib-core", version = "3.1" }
 slf4j-android = { group = "org.slf4j", name = "slf4j-android", version.ref = "slf4j" }
+androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

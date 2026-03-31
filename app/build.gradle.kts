@@ -5,16 +5,12 @@ plugins {
 
 android {
     namespace = "net.pythonsden.ao3_"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "net.pythonsden.ao3_"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -51,6 +47,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.datastore.preferences)
     
     implementation(libs.epublib) {
         exclude(group = "org.slf4j", module = "slf4j-simple")
