@@ -2,11 +2,13 @@ package net.pythonsden.ao3_.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.pythonsden.ao3_.data.repository.EpubRepository
 import net.pythonsden.ao3_.data.repository.FileRepository
 import java.io.File
@@ -46,23 +48,26 @@ class DownloadsViewModel(
     }
 
     private suspend fun refreshFiles(dir: File, query: String, sort: SortOrder) {
-        val allItems = fileRepository.listFiles(dir)
-        val filtered = if (query.isBlank()) {
-            allItems
-        } else {
-            allItems.filter { it.name.contains(query, ignoreCase = true) }
-        }
+        withContext(Dispatchers.Default) {
+            val allItems = fileRepository.listFiles(dir)
+            val filtered = if (query.isBlank()) {
+                allItems
+            } else {
+                allItems.filter { it.name.contains(query, ignoreCase = true) }
+            }
 
-        _items.value = filtered.sortedWith { f1, f2 ->
-            if (f1.isDirectory && !f2.isDirectory) -1
-            else if (!f1.isDirectory && f2.isDirectory) 1
-            else {
-                when (sort) {
-                    SortOrder.NAME -> f1.name.lowercase().compareTo(f2.name.lowercase())
-                    SortOrder.DATE -> f2.lastModified().compareTo(f1.lastModified())
-                    SortOrder.SIZE -> f2.length().compareTo(f1.length())
+            val sorted = filtered.sortedWith { f1, f2 ->
+                if (f1.isDirectory && !f2.isDirectory) -1
+                else if (!f1.isDirectory && f2.isDirectory) 1
+                else {
+                    when (sort) {
+                        SortOrder.NAME -> f1.name.lowercase().compareTo(f2.name.lowercase())
+                        SortOrder.DATE -> f2.lastModified().compareTo(f1.lastModified())
+                        SortOrder.SIZE -> f2.length().compareTo(f1.length())
+                    }
                 }
             }
+            _items.value = sorted
         }
     }
 

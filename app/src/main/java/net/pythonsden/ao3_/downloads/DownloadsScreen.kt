@@ -213,7 +213,10 @@ fun DownloadsScreen(
                     }
                 }
                 
-                items(items) { item ->
+                items(
+                    items = items,
+                    key = { it.absolutePath }
+                ) { item ->
                     ListItem(
                         headlineContent = { Text(item.name) },
                         supportingContent = { 

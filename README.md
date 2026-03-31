@@ -1,4 +1,4 @@
-# AO3 Client
+# AO3 Client (v1.0)
 
 A feature-rich Android client for Archive of Our Own (AO3), designed for a seamless browsing, downloading, and reading experience.
 
@@ -13,19 +13,23 @@ A feature-rich Android client for Archive of Our Own (AO3), designed for a seaml
 - **Built-in EPUB Reader**:
     - Custom reader optimized for fanfiction.
     - Dark mode by default for comfortable reading.
-    - Remembers your scroll position for every work.
+    - **Persistent Progress**: Remembers your scroll position for every work using a deterministic layout-based restoration.
 - **Offline Mode**: A dedicated toggle to browse your downloaded library without an internet connection.
 - **Library Management**:
     - Search through your downloaded works.
     - Sort by Name, Date, or File Size.
-    - Move, delete, and manually manage your files.
-- **State Persistence**: The app remembers where you left off, including your last visited URL and the last book you were reading.
+    - Move, delete, and manually manage your files with safety confirmations.
+- **State Persistence**: The app remembers where you left off, including your last visited URL and the last book you were reading, powered by **Jetpack DataStore**.
 
-## Tech Stack
+## Tech Stack & Architecture
+
+This project follows **Clean Architecture** principles and modern Android development practices:
 
 - **Language**: [Kotlin](https://kotlinlang.org/)
 - **UI Framework**: [Jetpack Compose](https://developer.android.com/jetpack/compose)
-- **Navigation**: [Compose Navigation](https://developer.android.com/jetpack/compose/navigation)
+- **State Management**: [ViewModel](https://developer.android.com/topic/libraries/architecture/viewmodel) with [StateFlow](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-state-flow/)
+- **Persistence**: [Jetpack DataStore](https://developer.android.com/topic/libraries/architecture/datastore) (Preferences)
+- **Concurrency**: [Kotlin Coroutines](https://kotlinlang.org/docs/coroutines-overview.html) for non-blocking I/O
 - **EPUB Engine**: [epublib](https://github.com/psiegman/epublib)
 - **Design System**: Material 3
 
@@ -55,6 +59,10 @@ A feature-rich Android client for Archive of Our Own (AO3), designed for a seaml
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+## Acknowledgements
+
+This project was developed and refactored with the assistance of **AI technology**, which helped in modernizing the architecture, improving performance, and implementing robust state management.
 
 ## License
 

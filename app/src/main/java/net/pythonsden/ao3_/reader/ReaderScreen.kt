@@ -1,5 +1,6 @@
 package net.pythonsden.ao3_.reader
 
+import android.view.ViewTreeObserver
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.Box
@@ -19,6 +20,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -74,12 +78,13 @@ fun ReaderScreen(
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
                 is ReaderUiState.Success -> {
+                    var hasRestoredScroll by remember(file.absolutePath) { mutableStateOf(false) }
+                    
                     AndroidView(
                         modifier = Modifier.fillMaxSize(),
                         factory = { ctx ->
                             WebView(ctx).apply {
                                 setBackgroundColor(android.graphics.Color.parseColor("#121212"))
-                                // Security: Disable JavaScript for EPUB reading unless strictly needed
                                 settings.javaScriptEnabled = false
                                 settings.allowFileAccess = false
                                 settings.allowContentAccess = false
@@ -87,18 +92,33 @@ fun ReaderScreen(
                                 webViewClient = object : WebViewClient() {
                                     override fun onPageFinished(view: WebView?, url: String?) {
                                         super.onPageFinished(view, url)
-                                        if (state.initialScroll > 0) {
-                                            // Restore scroll position
+                                        if (!hasRestoredScroll && state.initialScroll > 0) {
                                             view?.scrollTo(0, state.initialScroll)
-                                            // Multiple attempts to ensure it works after layout
-                                            view?.postDelayed({ view.scrollTo(0, state.initialScroll) }, 100)
-                                            view?.postDelayed({ view.scrollTo(0, state.initialScroll) }, 300)
                                         }
                                     }
                                 }
                                 
+                                val layoutListener = object : ViewTreeObserver.OnGlobalLayoutListener {
+                                    override fun onGlobalLayout() {
+                                        if (!hasRestoredScroll && state.initialScroll > 0) {
+                                            if (contentHeight > 0) {
+                                                scrollTo(0, state.initialScroll)
+                                                // If we've scrolled to or past the target, or reached bottom
+                                                if (scrollY >= state.initialScroll || scrollY > 0) {
+                                                    hasRestoredScroll = true
+                                                }
+                                            }
+                                        } else if (state.initialScroll == 0) {
+                                            hasRestoredScroll = true
+                                        }
+                                    }
+                                }
+                                viewTreeObserver.addOnGlobalLayoutListener(layoutListener)
+                                
                                 setOnScrollChangeListener { _, _, _, scrollY, _ ->
-                                    viewModel.saveScrollPosition(file.absolutePath, scrollY)
+                                    if (hasRestoredScroll) {
+                                        viewModel.saveScrollPosition(file.absolutePath, scrollY)
+                                    }
                                 }
                             }
                         },
